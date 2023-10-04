@@ -1,6 +1,7 @@
 import { Navbar } from './components/navbar'
 import { PetItem } from './components/petItem'
 import { TxError } from './components/txError'
+import { WalletNotDetected } from './components/WalletNotDetected'
 import { useEffect } from 'react'
 import { useState } from 'react'
 export function Dapp() {
@@ -15,6 +16,9 @@ export function Dapp() {
 
     fetchPets()
   }, [])
+  if (window.ethereum === undefined) {
+    return <WalletNotDetected />
+  }
   return (
     <div className="container">
       <TxError />
