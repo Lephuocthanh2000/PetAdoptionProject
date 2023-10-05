@@ -3,5 +3,10 @@ require('@nomicfoundation/hardhat-toolbox')
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: '0.8.21',
-  networks: {},
+  networks: {
+    localhost: {
+      name: 'hardhat',
+      chainId: 31337,
+    },
+  },
 }

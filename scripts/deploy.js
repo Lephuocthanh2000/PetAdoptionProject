@@ -4,30 +4,46 @@
 // You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
-const hre = require("hardhat");
+const hre = require('hardhat')
+const fs = require('fs')
+const path = require('path')
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  console.log('Deployment started!')
 
-  const lockedAmount = hre.ethers.parseEther("0.001");
+  const [deployer] = await ethers.getSigners()
+  const address = await deployer.getAddress()
 
-  const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
+  console.log(`Deploying the contract with the account: ${address}`)
 
-  await lock.waitForDeployment();
+  const PETS_COUNT = 5
+  const PetAdoption = await hre.ethers.getContractFactory('PetAdoption')
+  const contract = await PetAdoption.deploy(PETS_COUNT)
+  await contract.waitForDeployment()
+  console.log(`PetAdoption deployed to ${contract.target}`)
 
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  saveContractFiles(contract)
 }
+function saveContractFiles(contract) {
+  const contractDir = path.join(__dirname, '..', 'frontend', 'src', 'contracts')
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
+  if (!fs.existsSync(contractDir)) {
+    fs.mkdirSync(contractDir)
+  }
+
+  fs.writeFileSync(
+    path.join(contractDir, `contract-address-${network.name}.json`),
+    JSON.stringify({ PetAdoption: contract.address }, null, 2)
+  )
+
+  const PetAdoptionArtifact = artifacts.readArtifactSync('PetAdoption')
+
+  fs.writeFileSync(
+    path.join(contractDir, 'PetAdoption.json'),
+    JSON.stringify(PetAdoptionArtifact, null, 2)
+  )
+}
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+  console.log(error)
+  process.exitCode = 1
+})
