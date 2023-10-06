@@ -65,6 +65,21 @@ export function Dapp() {
     setContract(contract)
     return contract
   }
+  async function adoptPet(id) {
+    try {
+      const tx = await contract.adoptPet(id)
+      const receipt = await tx.wait()
+
+      if (receipt.status === 0) {
+        throw new Error('Transaction failed!')
+      }
+
+      alert(`Pet with id: ${id} has been adopted!`)
+      setAdoptedPets([...adoptedPets, id])
+    } catch (e) {
+      console.error(e.reason)
+    }
+  }
   async function getAdoptedPets(contract) {
     try {
       const adoptedPets = await contract.getAllAdoptedPets()
@@ -152,7 +167,7 @@ export function Dapp() {
       {JSON.stringify(adoptedPets)}
       <div className="items">
         {pets.map((pet) => (
-          <PetItem key={pet.id} pet={pet} />
+          <PetItem key={pet.id} pet={pet} adoptPet={() => adoptPet(pet.id)} />
         ))}
       </div>
     </div>
