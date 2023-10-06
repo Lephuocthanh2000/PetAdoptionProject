@@ -15,6 +15,7 @@ export function Dapp() {
   const [selectedAddress, setSelectedAddress] = useState(undefined)
   const [contract, setContract] = useState(undefined)
   const [adoptedPets, setAdoptedPets] = useState([])
+  const [txError, setTxError] = useState(undefined)
   useEffect(() => {
     async function fetchPets() {
       const res = await fetch('/pets.json')
@@ -36,6 +37,7 @@ export function Dapp() {
           setAdoptedPets([])
           setSelectedAddress(undefined)
           setContract(undefined)
+          setTxError(undefined)
           return
         }
 
@@ -44,7 +46,7 @@ export function Dapp() {
         // getting owned pets
       })
     } catch (e) {
-      console.error(e.message)
+      setTxError(e?.reason)
     }
   }
   async function initiliazeDapp(address) {
@@ -157,7 +159,9 @@ export function Dapp() {
   }
   return (
     <div className="container">
-      <TxError />
+      {txError && (
+        <TxError dismiss={() => setTxError(undefined)} message={txError} />
+      )}
       <br />
 
       <div className="navbar-container">
@@ -167,7 +171,12 @@ export function Dapp() {
       {JSON.stringify(adoptedPets)}
       <div className="items">
         {pets.map((pet) => (
-          <PetItem key={pet.id} pet={pet} adoptPet={() => adoptPet(pet.id)} />
+          <PetItem
+            key={pet.id}
+            pet={pet}
+            disabled={adoptedPets.includes(pet.id)}
+            adoptPet={() => adoptPet(pet.id)}
+          />
         ))}
       </div>
     </div>
