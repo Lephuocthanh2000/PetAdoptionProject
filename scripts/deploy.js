@@ -33,7 +33,7 @@ function saveContractFiles(contract) {
 
   fs.writeFileSync(
     path.join(contractDir, `contract-address-${network.name}.json`),
-    JSON.stringify({ PetAdoption: contract.address }, null, 2)
+    JSON.stringify({ PetAdoption: contract.target }, null, 2)
   )
 
   const PetAdoptionArtifact = artifacts.readArtifactSync('PetAdoption')

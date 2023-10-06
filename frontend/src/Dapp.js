@@ -5,10 +5,16 @@ import { WalletNotDetected } from './components/WalletNotDetected'
 import { WalletConnect } from './components/WalletConnect'
 import { useEffect } from 'react'
 import { useState } from 'react'
+
+import { ethers } from 'ethers'
+import contractAddress from './contracts/contract-address-localhost.json'
+import PetAdoptionArtifact from './contracts/PetAdoption.json'
 export function Dapp() {
   const HARDHAT_NETWORK_ID = Number(process.env.REACT_APP_NETWORK_ID)
   const [pets, setPets] = useState([])
   const [selectedAddress, setSelectedAddress] = useState(undefined)
+  const [contract, setContract] = useState(undefined)
+  const [adoptedPets, setAdoptedPets] = useState([])
   useEffect(() => {
     async function fetchPets() {
       const res = await fetch('/pets.json')
@@ -24,17 +30,50 @@ export function Dapp() {
         method: 'eth_requestAccounts',
       })
       await checkNetwork()
-      setSelectedAddress(address)
+      initiliazeDapp(address)
       window.ethereum.on('accountsChanged', ([newAddress]) => {
         if (newAddress === undefined) {
+          setAdoptedPets([])
           setSelectedAddress(undefined)
+          setContract(undefined)
           return
         }
 
-        setSelectedAddress(newAddress)
+        initiliazeDapp(newAddress)
         // connection to SC
         // getting owned pets
       })
+    } catch (e) {
+      console.error(e.message)
+    }
+  }
+  async function initiliazeDapp(address) {
+    setSelectedAddress(address)
+    const contract = await initContract()
+    getAdoptedPets(contract)
+  }
+
+  async function initContract() {
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const signer = await provider.getSigner(0)
+    const contract = new ethers.Contract(
+      contractAddress.PetAdoption,
+      PetAdoptionArtifact.abi,
+      signer
+    )
+
+    setContract(contract)
+    return contract
+  }
+  async function getAdoptedPets(contract) {
+    try {
+      const adoptedPets = await contract.getAllAdoptedPets()
+
+      if (adoptedPets.length > 0) {
+        setAdoptedPets(adoptedPets.map((petIdx) => Number(petIdx)))
+      } else {
+        setAdoptedPets([])
+      }
     } catch (e) {
       console.error(e.message)
     }
@@ -105,10 +144,12 @@ export function Dapp() {
     <div className="container">
       <TxError />
       <br />
+
       <div className="navbar-container">
         <Navbar address={selectedAddress} />
       </div>
       {/* {JSON.stringify(pets)} */}
+      {JSON.stringify(adoptedPets)}
       <div className="items">
         {pets.map((pet) => (
           <PetItem key={pet.id} pet={pet} />
