@@ -1,4 +1,4 @@
-export function PetItem({ pet, adoptPet, disabled }) {
+export function PetItem({ pet, adoptPet, disabled, inProgress }) {
   return (
     <div className="item">
       <div className="image">
@@ -25,10 +25,10 @@ export function PetItem({ pet, adoptPet, disabled }) {
       <div className="action-menu">
         <button
           onClick={adoptPet}
-          disabled={disabled}
+          disabled={disabled || inProgress}
           className="action-button"
         >
-          Adopt
+          {disabled ? 'Happily Adopted' : 'Adopt'}
         </button>
       </div>
     </div>

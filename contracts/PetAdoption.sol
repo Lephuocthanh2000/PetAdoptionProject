@@ -1,43 +1,50 @@
 //SPDX-License-Identifier: UNLICENSE
-pragma solidity ^0.8.21;
-import "hardhat/console.sol";
+pragma solidity ^0.8.2;
+
+// import "hardhat/console.sol";
 
 contract PetAdoption {
     address public owner;
-    uint public indexPet = 0;
+    uint public petIndex = 0;
     uint[] public allAdoptedPets;
 
-    mapping(uint => address) public petIdToOwnerAddress;
-    mapping(address => uint[]) public owneAddressToPetList;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
+    mapping(uint => address) public petIdxToOwnerAddress;
+    mapping(address => uint[]) public ownerAddressToPetList;
 
     constructor(uint initialPetIndex) {
         owner = msg.sender;
-        indexPet = initialPetIndex;
+        petIndex = initialPetIndex;
+    }
+
+    function addPet() public {
+        require(
+            msg.sender == owner,
+            "Only a contract owner can add a new pet!"
+        );
+        petIndex++;
+    }
+
+    function adoptPet(uint adoptIdx) public {
+        require(adoptIdx < petIndex, "Pet index out of bounds!");
+        require(
+            petIdxToOwnerAddress[adoptIdx] == address(0),
+            "Pet is already adopted"
+        );
+
+        petIdxToOwnerAddress[adoptIdx] = msg.sender;
+        ownerAddressToPetList[msg.sender].push(adoptIdx);
+        allAdoptedPets.push(adoptIdx);
     }
 
     function getOwner() public view returns (address) {
         return owner;
     }
 
-    function addPet() external onlyOwner returns (bool) {
-        indexPet++;
-        return true;
+    function getAllAdoptedPetsByOnwer() public view returns (uint[] memory) {
+        return ownerAddressToPetList[msg.sender];
     }
 
-    function adoptPet(uint adoptIdx) public {
-        require(adoptIdx < indexPet, "Pet index out of bound");
-        require(
-            petIdToOwnerAddress[adoptIdx] == address(0),
-            "Pet has already adopted"
-        );
-        console.log("Adopting pet: ", adoptIdx);
-        console.log("new Owner: ", petIdToOwnerAddress[adoptIdx]);
-        owneAddressToPetList[msg.sender].push(adoptIdx);
-        allAdoptedPets.push(adoptIdx);
+    function getAllAdoptedPets() public view returns (uint[] memory) {
+        return allAdoptedPets;
     }
 }
